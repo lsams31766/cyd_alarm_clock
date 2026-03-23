@@ -13,6 +13,7 @@
 
 #include <TFT_eSPI.h>
 #include <XPT2046_Touchscreen.h>
+#include "defines.h"
 
 // for time
 #include <iostream>
@@ -23,6 +24,7 @@
 
 // ---- squareline Studio exported UI headers ----
 #include "ui.h"
+#include "button_handler.h"
 
 
 // A library for interfacing with the touch screen
@@ -54,12 +56,14 @@ uint16_t touchScreenMinimumX = 200, touchScreenMaximumX = 3700, touchScreenMinim
 // for getting time from the web
 #include <WiFi.h>
 #include <time.h>
-const char* ssid     = "Verizon_4WZFSW";
-const char* password = "broke-iris4-zoo";
+const char* ssid     = MY_SSID;
+const char* password = MY_PW;
 // NTP
 const char* ntpServer = "pool.ntp.org";
 const long gmtOffset_sec = -4 * 3600;      // UTC-4
 const int  daylightOffset_sec = 0;
+int totalMinutes = 0;  // minutes since midnight
+int totalSeconds = 0; // seconds since polled
 
 
 /*LVGL draw into this buffer, 1/10 screen size usually works well. The size is in bytes*/
@@ -74,51 +78,63 @@ void my_print( lv_log_level_t level, const char * buf )
 }
 #endif
 
-// to get time from the internet
-String getTimeString() {
+void getTotalMinutes() {
+  // OPTIMIZATION - prevent continuous network polling - when total minutes == 0, we get real time only
+  if (totalMinutes > 0) {
+    // do not poll internet time, just use seconds
+    totalSeconds += 1;
+    if (totalSeconds == 60) {
+      totalSeconds = 0;
+      totalMinutes += 1;
+    }
+    return;
+  }
+
   struct tm timeinfo;
   if (!getLocalTime(&timeinfo)) {
-    return "NO NTP SYNC";
+     Serial.println("ERROR: Could not get Time from internet");
+     return;
   }
   char buf[32];
   strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &timeinfo);
-  std::string curTime = buf;
-  // convert this to c string, only year month day, am or pm
-  std::string curTimeFixed;
-  size_t spacePos = curTime.find(' ');
-  if (spacePos == std::string::npos) {
-     curTimeFixed = "";
-     return "BAD TIME FMT";
-  }  
-  curTimeFixed =  curTime.substr(spacePos + 1);
-  //printf("\nFixed time is ");
-  //printf(curTimeFixed.c_str());
-  //printf("\n");
-    
-  // make it am or pm 
-  int hh = std::stoi(curTimeFixed.substr(0, 2));
-  std::string Meridien;
-  if (hh < 12) {
-      Meridien = "AM";
-  } else {
-      Meridien = "PM";
-  }
-  hh %= 12;
-  if (hh == 0) {
-        hh = 12;
-    }
 
-  // Use stringstream to format the output nicely (e.g., "05" instead of "5")
-  std::ostringstream os;
-  os << std::setfill('0') << std::setw(2) << hh << curTimeFixed.substr(2, 6) << " " << Meridien;
-  std::string const cppString = os.str(); 
-  char const* cString = cppString.c_str(); 
-  // printf("\nAM PM Fixed time is ");
-  // printf(cString);
-  // printf("\n");
-  //return String(buf);
-  return cString;
+  int year, month, day, hour, min, sec;
+  // Parse the string using sscanf
+  if (sscanf(buf, "%d-%d-%d %d:%d:%d", 
+               &year, &month, &day, &hour, &min, &sec) == 6) {     
+    // Calculate total minutes from start of day
+    totalMinutes = (hour * 60) + min;
+    Serial.print("total minutes: ");
+    Serial.println(totalMinutes);
+  } else {
+        Serial.println("ERROR: Failed to parse total minutes");
+  }  
 }
+
+char curTime[12];
+
+void getTimeString() {
+// convert total_minutes to display string
+  int hh = totalMinutes/60 % 12;
+  int mm = totalMinutes % 60;
+
+  char am_pm[] = "AM";
+  if (totalMinutes >= (60 * 12)) {
+      strcpy(am_pm,"PM");
+  }
+  // THIS option shows seconds
+  //sprintf(curTime, "%02d:%02d:%02d %s", hh, mm, totalSeconds, am_pm);
+  //curTime[11] = 0; // terminate it
+  // THIS option does not show seconds
+  if (hh == 0) {
+    hh = 12;
+  }
+  sprintf(curTime, "%02d:%02d %s", hh, mm, am_pm);
+  curTime[9] = 0; // terminate it
+  //Serial.print("curTime string: ");
+  //Serial.println(curTime);
+}
+
 
 /* LVGL calls it when a rendered image needs to copied to the display*/
 void my_disp_flush( lv_display_t *disp, const lv_area_t *area, uint8_t * px_map)
@@ -208,16 +224,18 @@ void loop()
 {   
     lv_tick_inc(millis() - lastTick); //Update the tick timer. Tick is new for LVGL 9
     lastTick = millis();
-    lv_timer_handler();               //Update the UI
+      lv_timer_handler();               //Update the UI
     delay(5);
 
-    // update time every 500 ms
-    if ((millis() - lastTimeCheck) > 500) {
+    // update time every 1000 ms
+    if ((millis() - lastTimeCheck) > 1000) {
       lastTimeCheck = millis();
-      String curTime = getTimeString();
-      Serial.print("Time is ");
-      Serial.println(curTime.c_str());
-      lv_label_set_text(ui_lblCurrentTime,curTime.c_str());
+      getTotalMinutes();
+      getTimeString();
+      //Serial.print("Time is ");
+      //Serial.println(curTime);
+      lv_label_set_text(ui_lblCurrentTime,curTime);
     }
+    pollButtons();
     
 }

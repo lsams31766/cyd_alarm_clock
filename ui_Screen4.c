@@ -4,6 +4,7 @@
 // Project name: Alarm Clock
 
 #include "ui.h"
+#include "button_handler.h"
 
 lv_obj_t *ui_Screen4 = NULL;lv_obj_t *ui_lblAlarmTime = NULL;lv_obj_t *ui_btnAlarmHrs = NULL;lv_obj_t *ui_Label10 = NULL;lv_obj_t *ui_btnAlarmMin = NULL;lv_obj_t *ui_Label1 = NULL;lv_obj_t *ui_btnAlarmAmPm = NULL;lv_obj_t *ui_Label2 = NULL;lv_obj_t *ui_Label11 = NULL;lv_obj_t *ui_Button7 = NULL;lv_obj_t *ui_Label12 = NULL;
 // event funtions
@@ -109,6 +110,12 @@ lv_obj_set_align( ui_Label12, LV_ALIGN_CENTER );
 lv_label_set_text(ui_Label12,"Next");
 
 lv_obj_add_event_cb(ui_Button7, ui_event_Button7, LV_EVENT_ALL, NULL);
+
+// add by LS
+lv_obj_add_event_cb(ui_btnAlarmHrs, ui_event_global_button_handler, LV_EVENT_ALL, NULL);
+
+
+uic_chkAlarm = ui_chkAlarm;
 
 }
 
