@@ -32,7 +32,7 @@ lv_obj_set_height( ui_lblAlarmTime, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_x( ui_lblAlarmTime, -13 );
 lv_obj_set_y( ui_lblAlarmTime, -39 );
 lv_obj_set_align( ui_lblAlarmTime, LV_ALIGN_CENTER );
-lv_label_set_text(ui_lblAlarmTime,"5:43 PM");
+lv_label_set_text(ui_lblAlarmTime,"12:00 PM");
 lv_obj_set_style_text_font(ui_lblAlarmTime, &ui_font_Digital3, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_btnAlarmHrs = lv_button_create(ui_Screen4);
@@ -113,6 +113,8 @@ lv_obj_add_event_cb(ui_Button7, ui_event_Button7, LV_EVENT_ALL, NULL);
 
 // add by LS
 lv_obj_add_event_cb(ui_btnAlarmHrs, ui_event_global_button_handler, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_btnAlarmMin, ui_event_global_button_handler, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_btnAlarmAmPm, ui_event_global_button_handler, LV_EVENT_ALL, NULL);
 
 
 uic_chkAlarm = ui_chkAlarm;

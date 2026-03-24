@@ -4,6 +4,7 @@
 // Project name: Alarm Clock
 
 #include "ui.h"
+#include "button_handler.h"
 
 lv_obj_t *ui_Screen5 = NULL;lv_obj_t *ui_Label13 = NULL;lv_obj_t *ui_Label14 = NULL;lv_obj_t *ui_btnTimerHrs = NULL;lv_obj_t *ui_Label4 = NULL;lv_obj_t *ui_btnTimerMin = NULL;lv_obj_t *ui_Label5 = NULL;lv_obj_t *ui_btnTimerSec = NULL;lv_obj_t *ui_Label15 = NULL;lv_obj_t *ui_btnTimerReset = NULL;lv_obj_t *ui_Label16 = NULL;lv_obj_t *ui_btnTimerStartStop = NULL;lv_obj_t *ui_Label17 = NULL;lv_obj_t *ui_Button12 = NULL;lv_obj_t *ui_Label18 = NULL;
 // event funtions
@@ -34,14 +35,14 @@ ui_Label14 = lv_label_create(ui_Screen5);
 lv_obj_set_width( ui_Label14, LV_SIZE_CONTENT);  /// 1
 lv_obj_set_height( ui_Label14, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_x( ui_Label14, -1 );
-lv_obj_set_y( ui_Label14, -57 );
+lv_obj_set_y( ui_Label14, -64 );
 lv_obj_set_align( ui_Label14, LV_ALIGN_CENTER );
-lv_label_set_text(ui_Label14,"1:23:45");
+lv_label_set_text(ui_Label14,"00:00:00");
 lv_obj_set_style_text_font(ui_Label14, &ui_font_Digital3, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_btnTimerHrs = lv_button_create(ui_Screen5);
-lv_obj_set_width( ui_btnTimerHrs, 32);
-lv_obj_set_height( ui_btnTimerHrs, 21);
+lv_obj_set_width( ui_btnTimerHrs, 64);
+lv_obj_set_height( ui_btnTimerHrs, 42);
 lv_obj_set_x( ui_btnTimerHrs, -94 );
 lv_obj_set_y( ui_btnTimerHrs, -18 );
 lv_obj_set_align( ui_btnTimerHrs, LV_ALIGN_CENTER );
@@ -57,9 +58,9 @@ lv_obj_set_align( ui_Label4, LV_ALIGN_CENTER );
 lv_label_set_text(ui_Label4,"Hr");
 
 ui_btnTimerMin = lv_button_create(ui_Screen5);
-lv_obj_set_width( ui_btnTimerMin, 30);
-lv_obj_set_height( ui_btnTimerMin, 22);
-lv_obj_set_x( ui_btnTimerMin, -28 );
+lv_obj_set_width( ui_btnTimerMin, 60);
+lv_obj_set_height( ui_btnTimerMin, 44);
+lv_obj_set_x( ui_btnTimerMin, -3 );
 lv_obj_set_y( ui_btnTimerMin, -18 );
 lv_obj_set_align( ui_btnTimerMin, LV_ALIGN_CENTER );
 lv_obj_add_flag( ui_btnTimerMin, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
@@ -74,9 +75,9 @@ lv_obj_set_align( ui_Label5, LV_ALIGN_CENTER );
 lv_label_set_text(ui_Label5,"Min");
 
 ui_btnTimerSec = lv_button_create(ui_Screen5);
-lv_obj_set_width( ui_btnTimerSec, 37);
-lv_obj_set_height( ui_btnTimerSec, 21);
-lv_obj_set_x( ui_btnTimerSec, 56 );
+lv_obj_set_width( ui_btnTimerSec, 74);
+lv_obj_set_height( ui_btnTimerSec, 42);
+lv_obj_set_x( ui_btnTimerSec, 96 );
 lv_obj_set_y( ui_btnTimerSec, -17 );
 lv_obj_set_align( ui_btnTimerSec, LV_ALIGN_CENTER );
 lv_obj_add_flag( ui_btnTimerSec, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
@@ -140,6 +141,14 @@ lv_obj_set_align( ui_Label18, LV_ALIGN_CENTER );
 lv_label_set_text(ui_Label18,"Next");
 
 lv_obj_add_event_cb(ui_Button12, ui_event_Button12, LV_EVENT_ALL, NULL);
+
+// add by LS
+lv_obj_add_event_cb(ui_btnTimerHrs, ui_event_global_button_handler, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_btnTimerMin, ui_event_global_button_handler, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_btnTimerSec, ui_event_global_button_handler, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_btnTimerReset, ui_event_global_button_handler, LV_EVENT_ALL, NULL);
+lv_obj_add_event_cb(ui_btnTimerStartStop, ui_event_global_button_handler, LV_EVENT_ALL, NULL);
+
 
 }
 
