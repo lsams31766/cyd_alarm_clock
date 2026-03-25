@@ -64,6 +64,8 @@ const long gmtOffset_sec = -4 * 3600;      // UTC-4
 const int  daylightOffset_sec = 0;
 int totalMinutes = 0;  // minutes since midnight
 int totalSeconds = 0; // seconds since polled
+int lastBlinkTime = 0; // for time blinking when alarm is met
+bool bTimeBlanked = false; // for time blinking
 
 
 /*LVGL draw into this buffer, 1/10 screen size usually works well. The size is in bytes*/
@@ -220,6 +222,9 @@ void setup()
 }
 
 int lastTimeCheck = 0;
+int half_second = 1;
+bool bCurTimeBlinking = false;
+
 void loop()
 {   
     lv_tick_inc(millis() - lastTick); //Update the tick timer. Tick is new for LVGL 9
@@ -227,15 +232,30 @@ void loop()
       lv_timer_handler();               //Update the UI
     delay(5);
 
-    // update time every 1000 ms
-    if ((millis() - lastTimeCheck) > 1000) {
+    // update time every 500 ms
+    if ((millis() - lastTimeCheck) > 500) {
       lastTimeCheck = millis();
-      getTotalMinutes();
-      getTimeString();
-      //Serial.print("Time is ");
-      //Serial.println(curTime);
-      lv_label_set_text(ui_lblCurrentTime,curTime);
+      half_second += 1;
+      if (half_second == 2) {
+        half_second = 0;
+      }
+      if (half_second == 0) {
+        getTotalMinutes();
+        getTimeString();
+        //Serial.print("Time is ");
+        //Serial.println(curTime);
+        lv_label_set_text(ui_lblCurrentTime,curTime);
+        int alarmTime = getAlarmTime();
+        if (alarmTime == totalMinutes) {
+          Serial.println("ALARM TIME IS MET!!!");
+          bCurTimeBlinking = true;
+        }
+      }
+      // for blinking
+      bool bAlarmEnabled = getAlarmEnabled();
+      if ((half_second == 1) && bAlarmEnabled && bCurTimeBlinking) {
+        lv_label_set_text(ui_lblCurrentTime,""); // blank cur time
+      }
     }
     pollButtons();
-    
 }

@@ -4,6 +4,8 @@
 // Project name: Alarm Clock
 
 #include "ui.h"
+#include "button_handler.h"
+
 
 lv_obj_t *uic_chkAlarm;
 lv_obj_t *ui_Screen3 = NULL;lv_obj_t *ui_lblCurrentTime = NULL;lv_obj_t *ui_chkAlarm = NULL;lv_obj_t *ui_Button5 = NULL;lv_obj_t *ui_Label7 = NULL;lv_obj_t *ui_Label8 = NULL;
@@ -36,10 +38,11 @@ ui_chkAlarm = lv_checkbox_create(ui_Screen3);
 lv_checkbox_set_text(ui_chkAlarm,"Alarm ON");
 lv_obj_set_width( ui_chkAlarm, LV_SIZE_CONTENT);  /// 1
 lv_obj_set_height( ui_chkAlarm, LV_SIZE_CONTENT);   /// 1
-lv_obj_set_x( ui_chkAlarm, -46 );
-lv_obj_set_y( ui_chkAlarm, 9 );
+lv_obj_set_x( ui_chkAlarm, -15 );
+lv_obj_set_y( ui_chkAlarm, 19 );
 lv_obj_set_align( ui_chkAlarm, LV_ALIGN_CENTER );
 lv_obj_add_flag( ui_chkAlarm, LV_OBJ_FLAG_SCROLL_ON_FOCUS );   /// Flags
+lv_obj_set_style_text_font(ui_chkAlarm, &lv_font_montserrat_24, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_Button5 = lv_button_create(ui_Screen3);
 lv_obj_set_width( ui_Button5, 100);
@@ -66,6 +69,10 @@ lv_label_set_text(ui_Label8,"Current Time:");
 
 lv_obj_add_event_cb(ui_Button5, ui_event_Button5, LV_EVENT_ALL, NULL);
 uic_chkAlarm = ui_chkAlarm;
+
+// add by LS
+lv_obj_add_event_cb(ui_chkAlarm, ui_event_global_button_handler, LV_EVENT_ALL, NULL);
+
 
 }
 

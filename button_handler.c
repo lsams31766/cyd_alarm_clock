@@ -34,7 +34,14 @@ struct buttonLastStateStr buttonLastState = {0};
 bool bAlarmAmPm = false;
 
 int lastButtonCheck = 0;
+int lastTimerCheck = 0;
+int lastBlinkerCheck = 0;
 
+bool bTimerBlanked = false;
+bool bTimerRunning = false;
+bool bTimerBlinking = false;
+
+bool bAlarmEnabled = false;
 
 void setAlarmTime() {
 	if (alarmTime >= (24 * 60 * 60)) {
@@ -86,6 +93,11 @@ void setTimerTime() {
 	sendSerial(cTimerTime);
 }
 
+void blankTimerTime() {
+	sendSerial("Blank Timer Time");
+	lv_label_set_text(ui_Label14,"");
+}
+
 void incrementTimerHrs() {
 	timerTime += (60 * 60);
   setTimerTime();
@@ -106,6 +118,31 @@ void resetTimer() {
   setTimerTime();
 }
 
+void timerStartStop() {
+	if ((timerTime > 0) && (bTimerRunning == true)) { // pause function
+		bTimerRunning = false;
+		sendSerial("Timer Paused");
+		return;
+	}
+	if ((timerTime > 0) && (bTimerRunning == false)) { // start function
+		bTimerRunning = true;
+		sendSerial("Timer Started");
+		return;
+	}
+	if (timerTime <= 0) { // clear function
+		sendSerial("CLEAR timer blinking");
+		bTimerBlinking = false;
+		bTimerRunning = false; // end countdown
+		setTimerTime();
+		return;
+	}
+}
+
+void timerTimeOut() {
+		sendSerial("Timer TIMEOUT!!!");
+		bTimerBlinking = true;
+}
+
 //------ Alarm ------- //
 
 void incrementAlarmHrs() {
@@ -122,6 +159,25 @@ void toggleAlarmAmPm() {
 	alarmTime += (12 * 60 * 60);
 	setAlarmTime();
 }
+
+// we need to let cyc_alarm_clock.ino access the variables for the alarm enable/disable and blinking
+bool getAlarmEnabled() {
+	return bAlarmEnabled;
+}
+
+int getAlarmTime() {
+	return alarmTime;
+}
+
+void alarmEnable() {
+	// toggle alarm enabled - to be read by cyc_alarm_clock.ino
+	if (bAlarmEnabled == true) {
+		bAlarmEnabled = false; 
+	} else {
+		bAlarmEnabled = true;
+	}
+}
+
 void pollButtons() {
 	if ((millis() - lastButtonCheck) > 200) { // poll every 200 ms
     	lastButtonCheck = millis();
@@ -141,6 +197,39 @@ void pollButtons() {
   //   		buttonLastState.alarmHrs = false;
   //   	}
 	}
+
+	// run timer
+	if ((millis() - lastTimerCheck) > 1000) { // poll every 1000 ms
+    	lastTimerCheck = millis();
+			if (bTimerRunning == false) {
+				return;
+			}
+			if (timerTime == 1) {
+				// time out
+				timerTimeOut();
+			}
+			if (timerTime <= 0) {
+				return;
+			}
+			timerTime -= 1;
+			setTimerTime();
+	}
+
+	// run blinker
+	if ((millis() - lastBlinkerCheck) > 500) { // poll every 500 ms
+    	lastBlinkerCheck = millis();
+			if (bTimerBlinking == false) {
+				return;
+			}
+			if (bTimerBlanked == false) {
+				bTimerBlanked = true;
+				blankTimerTime();
+			} else {
+				bTimerBlanked = false;
+				setTimerTime();
+			}
+	}
+	
 }
 
 void ui_event_global_button_handler(lv_event_t * e) { 
@@ -182,6 +271,12 @@ void ui_event_global_button_handler(lv_event_t * e) {
 			toggleAlarmAmPm();
 		}
 
+		if (target == ui_chkAlarm) {
+			// TODO
+      sendSerial("Alarm ENABLE Clicked");
+			alarmEnable();
+		}
+
 		// Timer
 		if(target == ui_btnTimerHrs) {
       sendSerial("Timer Hrs Button Clicked");
@@ -198,17 +293,16 @@ void ui_event_global_button_handler(lv_event_t * e) {
 			incrementTimerSeconds();
 		}
 
-		// TO COMPLETE
 		if(target == ui_btnTimerReset) {
       sendSerial("Timer Reset Button Clicked");
 			resetTimer();
-			//incrementTimerSeconds();  TODO
 		}
 
 		if(target == ui_btnTimerStartStop) {
       sendSerial("Timer Start/Stop Button Clicked");
-			//incrementTimerSeconds(); TODO
+			timerStartStop();
 		}
+
 
 
 	// ... repeat for other buttons ...
